@@ -1,4 +1,4 @@
--- 0004 · Operación, cobro y legal
+-- 0004 · Operación, cobro y legal  (se puede correr más de una vez: tiene que ir DESPUÉS de 0003)
 --  1. Nuevo tipo de dato: entregas (remitos a empaque/comprador).
 --  2. El Encargado solo puede editar algunos campos de fincas y cuadros (variedad, estado, nota). Nada de la finca.
 --  3. Pizarra regional: de dónde sale cada precio (fuente, tipo, enlace) y sin duplicados.
@@ -107,6 +107,7 @@ create table if not exists subscriptions (
 );
 create index if not exists subscriptions_org on subscriptions(org_id);
 alter table subscriptions enable row level security;
+drop policy if exists subs_select on subscriptions;
 create policy subs_select on subscriptions for select using (role_in(org_id) = 'owner');
 grant select on subscriptions to authenticated;    -- sin insert/update: solo las Edge Functions (service_role) escriben
 
@@ -135,6 +136,8 @@ create table if not exists consents (
   primary key (user_id, doc, version)
 );
 alter table consents enable row level security;
+drop policy if exists consents_own on consents;
+drop policy if exists consents_ins on consents;
 create policy consents_own on consents for select using (user_id = auth_uid());
 create policy consents_ins on consents for insert with check (user_id = auth_uid());
 grant select, insert on consents to authenticated;
